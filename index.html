@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>존중목장</title>
+<meta name="description" content="존중목장 — 서로를 존중하는 생활 공동체">
+<meta name="theme-color" content="#3FA37A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="존중목장">
+<meta name="application-name" content="존중목장">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#F3FAF7;--ink:#3A4A44;--muted:#7D8F88;--accent:#3FA37A;--soft:#DDF3E8;--line:#E2EEE8;--card:#fff;--pink:#EE7F93;--pinksoft:#FDE6EB}
+@media (prefers-color-scheme:dark){:root{--bg:#18221F;--ink:#EAF4EF;--muted:#9DB3AA;--accent:#6CCBA0;--soft:#2A4A3C;--line:#33463F;--card:#22302B;--pinksoft:#4A2E36}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  display:flex;justify-content:center;
+  padding:max(28px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+.box{width:100%;max-width:400px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;margin:auto 0}
+.logo{width:116px;height:116px;border-radius:28px;box-shadow:0 6px 0 var(--line);animation:pop .5s ease-out}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+h1{margin:6px 0 0;font-size:30px;color:var(--accent);letter-spacing:-.5px}
+p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
+.tagline{margin-top:-6px;color:var(--ink);font-size:16px;font-weight:600;letter-spacing:-.2px}
+.tagline::before,.tagline::after{content:"🌱";margin:0 6px;font-size:14px}
+.dots{display:flex;gap:6px;height:12px;align-items:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.3;animation:b 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{opacity:1;transform:translateY(-3px)}}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:12px 16px;border-radius:999px;border:0;
+  background:var(--accent);color:#fff;font:inherit;font-size:17px;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.sub{background:var(--soft);color:var(--ink);font-size:15px;min-height:46px}
+.btn.pink{background:var(--pink)}
+.row{display:flex;gap:8px;width:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:left;font-size:14.5px;line-height:1.7;width:100%}
+.card b{color:var(--accent)}
+.card h2{margin:0 0 6px;font-size:16px;color:var(--ink)}
+.card ol{margin:0;padding-left:20px}
+.card.warn{background:var(--pinksoft);border-color:transparent}
+.card.warn h2{color:var(--pink)}
+.small{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="box">
+  <img class="logo" src="icons/icon-512.png" alt="존중목장 흑염소 아이콘" width="116" height="116">
+  <h1>존중목장</h1>
+  <p class="tagline">서로를 존중하는 생활 공동체</p>
+  <p id="msg"></p>
+  <div class="dots" id="dots" hidden><i></i><i></i><i></i></div>
+
+  <!-- 설치 버튼 (크롬이 설치를 허락할 때만 보임) -->
+  <button class="btn pink" id="install" hidden>📲 바탕화면에 앱 설치하기</button>
+
+  <!-- 카카오톡·네이버 등 앱 안에서 열었을 때 -->
+  <div class="card warn" id="inapp" hidden>
+    <h2>⚠️ 지금은 설치할 수 없는 화면이에요</h2>
+    카카오톡·네이버 같은 앱 안의 브라우저에서는 설치가 되지 않아요.
+    <b>크롬</b>으로 열어서 설치해 주세요.
+    <div style="margin-top:10px"><a class="btn" id="toChrome" href="#">크롬으로 열기</a></div>
+  </div>
+
+  <!-- claude.ai 아티팩트 미리보기 안에서 열었을 때 -->
+  <div class="card warn" id="preview" hidden>
+    <h2>⚠️ 미리보기 화면이에요</h2>
+    claude.ai 미리보기에서는 앱 설치가 되지 않아요. 선생님께 받은
+    <b>존중목장 앱 주소</b>를 휴대폰 크롬에서 열어 설치해 주세요.
+  </div>
+
+  <a class="btn" id="open" href="#">🐐 존중목장 열기</a>
+  <div class="row">
+    <a class="btn sub" id="student" href="#">학생 화면</a>
+    <a class="btn sub" id="survey" href="#">설문</a>
+  </div>
+
+  <!-- 안드로이드 크롬 수동 설치 안내 -->
+  <div class="card" id="howAndroid" hidden>
+    <h2>바탕화면에 설치하는 방법</h2>
+    <ol>
+      <li>크롬 오른쪽 위 <b>⋮</b> 메뉴를 누르세요</li>
+      <li><b>앱 설치</b> 또는 <b>홈 화면에 추가 → 설치</b>를 누르세요</li>
+      <li>바탕화면에 생긴 🐐 <b>존중목장</b> 아이콘을 누르면 끝!</li>
+    </ol>
+    <p class="small" style="margin-top:8px">‘바로가기 만들기’가 아니라 <b>설치</b>를 골라야 진짜 앱처럼 열려요.</p>
+  </div>
+
+  <!-- 아이폰 안내 -->
+  <div class="card" id="howIOS" hidden>
+    <h2>아이폰에 설치하는 방법</h2>
+    <ol>
+      <li><b>사파리</b>로 이 주소를 여세요</li>
+      <li>아래쪽 <b>공유 버튼(□↑)</b>을 누르세요</li>
+      <li><b>홈 화면에 추가</b> → <b>추가</b>를 누르세요</li>
+    </ol>
+  </div>
+
+  <!-- 설치된 앱에서 다시 돌아왔을 때 -->
+  <div class="card" id="installedTip" hidden>
+    <h2>✅ 앱으로 실행 중이에요</h2>
+    처음 열 때 claude.ai 로그인이 필요할 수 있어요. 휴대폰 <b>크롬</b>에서 claude.ai에 로그인해 두면 다음부터 바로 열립니다.
+  </div>
+
+  <button class="btn sub" id="copy">🔗 앱 주소 복사 (학생·동료에게 공유)</button>
+  <p class="small" id="ver">존중목장 앱 v4 · 흑염소</p>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// 실제 존중목장(데이터 저장소 포함)은 claude.ai 아티팩트에서 실행됩니다.
+const APP = "https://claude.ai/artifact/Sn3nRJ3RDBcQp27pdjVNwK";
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const ua = navigator.userAgent;
+const isAndroid = /Android/i.test(ua);
+const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isInApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|; wv\)/i.test(ua);
+let inFrame = false; try { inFrame = window.top !== window.self; } catch { inFrame = true; }
+const isPreview = inFrame || /claude\.ai|claudeusercontent/i.test(location.hostname);
+const standalone = matchMedia("(display-mode: standalone)").matches
+  || matchMedia("(display-mode: minimal-ui)").matches || navigator.standalone === true;
+
+const hashOf = { student: "#student", survey: "#survey" };
+const target = APP + (hashOf[q.get("go")] || "");
+$("open").href = APP; $("student").href = APP + "#student"; $("survey").href = APP + "#survey";
+
+const say = (t, busy) => { $("msg").textContent = t; $("dots").hidden = !busy; };
+const toast = t => { const el = $("toast"); el.textContent = t; el.classList.add("on"); setTimeout(() => el.classList.remove("on"), 2000); };
+
+if ("serviceWorker" in navigator && !isPreview) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// ---- 화면 상태 결정 ----
+if (isPreview) {
+  // claude.ai 미리보기: 안내 문구 없이 바로가기 버튼만 보여 줍니다.
+} else if (isInApp) {
+  $("inapp").hidden = false;
+  const here = location.href.replace(/^https?:\/\//, "");
+  $("toChrome").href = isAndroid
+    ? `intent://${here}#Intent;scheme=https;package=com.android.chrome;end`
+    : location.href;
+  if (!isAndroid) $("toChrome").textContent = "사파리로 열기 (오른쪽 아래 ⋯ → 다른 브라우저로 열기)";
+} else if (standalone) {
+  $("installedTip").hidden = false;
+  // 바탕화면 아이콘으로 실행: 바로 존중목장으로 이동.
+  // 뒤로 가기로 돌아왔을 때 다시 자동 이동하면 빠져나갈 수 없으므로 한 번만 이동합니다.
+  if (!sessionStorage.getItem("jj-opened") || q.get("go")) {
+    sessionStorage.setItem("jj-opened", "1");
+    say("존중목장으로 이동하고 있어요…", true);
+    location.replace(target);
+    setTimeout(() => say("자동으로 열리지 않으면 ‘존중목장 열기’를 눌러 주세요."), 3000);
+  } else {
+    say("아래 버튼으로 다시 열 수 있어요.");
+  }
+} else if (isIOS) {
+  $("howIOS").hidden = false;
+  say("바탕화면에 설치하면 앱처럼 한 번에 열려요.");
+} else {
+  $("howAndroid").hidden = false;
+  say("바탕화면에 설치하면 앱처럼 한 번에 열려요.");
+  if (q.get("go")) location.href = target;
+}
+
+addEventListener("pageshow", e => { if (e.persisted && standalone) say("아래 버튼으로 다시 열 수 있어요."); });
+
+// ---- 크롬 설치 버튼 ----
+let deferred = null;
+addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferred = e;
+  $("install").hidden = false;
+});
+$("install").addEventListener("click", async () => {
+  if (!deferred) return;
+  deferred.prompt();
+  const { outcome } = await deferred.userChoice;
+  deferred = null; $("install").hidden = true;
+  if (outcome === "accepted") done();
+});
+function done(){
+  say("설치 완료! 바탕화면의 🐐 존중목장 아이콘을 눌러 보세요.");
+  $("howAndroid").hidden = true; $("install").hidden = true;
+}
+addEventListener("appinstalled", done);
+
+// ---- 주소 복사 ----
+$("copy").addEventListener("click", async () => {
+  const url = location.origin + location.pathname;
+  try { await navigator.clipboard.writeText(url); toast("앱 주소를 복사했어요"); }
+  catch { toast(url); }
+});
+</script>
+</body>
+</html>
